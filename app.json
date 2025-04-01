@@ -35,7 +35,10 @@
       "required": true
     }
   },
-   "formation": {
+  "formation": {
     "web": {
       "quantity": 1,
       "size": "standard-2x"
+    }
+  }
+}
