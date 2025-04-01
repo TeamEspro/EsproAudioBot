@@ -1,9 +1,10 @@
 pymongo
 pyrogram 
-aiofiles==24.1.0
-aiohttp==3.10.3
-asyncio==3.4.3
+aiofiles
+aiohttp
+asyncio
 py-tgcalls
+ntgcalls
 python-dotenv==1.0.1
-tgcrypto==1.2.5
+tgcrypto
 yt-dlp==2025.1.12
