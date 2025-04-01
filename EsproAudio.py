@@ -160,8 +160,7 @@ def stop(client, message):
     vc.leave_group_call(chat_id)
     message.reply_text("🛑 म्यूजिक बंद कर दिया गया है।")
 
-# Log errors to Logger group
-@app.on_error()
+# Error handling - You should wrap the code in try-except in functions where errors may occur
 async def log_error(client, error):
     try:
         await client.send_message(LOGGER_ID, f"Error occurred: {error}")
