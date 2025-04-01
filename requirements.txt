@@ -3,6 +3,6 @@ tgcrypto==1.2.5
 pymongo[srv]==4.5.0  
 py-tgcalls==2.1.1
 yt-dlp==2024.03.10  
-aiohttp==3.8.5
+aiohttp==3.11.15
 ffmpeg
 git+https://github.com/pytgcalls/pytgcalls.git
