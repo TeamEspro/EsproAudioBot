@@ -1,33 +1,32 @@
 import os
 import asyncio
 import yt_dlp
-import pymongo
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pytgcalls import PyTgCalls, AudioPiped  # Updated import for AudioPiped
+from pytgcalls import PyTgCalls, AudioStream
 from pytgcalls.types import GroupCallParticipant
-from pytgcalls import GroupCall
-from pytgcalls.types.input_stream import InputAudioStream
+from pymongo import MongoClient
 
-# Heroku Config Vars (for environment variables)
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-USERBOT_SESSION = os.getenv("USERBOT_SESSION")
-MONGO_URI = os.getenv("MONGO_URI")
-LOGGER_ID = os.getenv("LOGGER_ID")
-OWNER_ID = int(os.getenv("OWNER_ID"))
+# Telegram API and bot credentials (these should be set as environment variables or hardcoded)
+API_ID = os.getenv("API_ID")  # Your API ID
+API_HASH = os.getenv("API_HASH")  # Your API HASH
+BOT_TOKEN = os.getenv("BOT_TOKEN")  # Your Bot Token
+USERBOT_SESSION = os.getenv("USERBOT_SESSION")  # Your userbot session string
+MONGO_URI = os.getenv("MONGO_URI")  # MongoDB URI (for storing user data)
+LOGGER_ID = os.getenv("LOGGER_ID")  # Log channel/user for errors
 
-# Initialize bot, userbot, and database
+# Initialize the client (bot) and userbot
 app = Client("music_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 userbot = Client("userbot", session_string=USERBOT_SESSION)
 vc = PyTgCalls(userbot)
-client = pymongo.MongoClient(MONGO_URI)
-db = client["telegram_music_bot"]
-songs_collection = db["songs"]
-users_collection = db["users"]
 
-# Store user details
+# MongoDB connection to store user and song data
+client = MongoClient(MONGO_URI)
+db = client["music_bot"]
+users_collection = db["users"]
+songs_collection = db["songs"]
+
+# Function to register new users
 @app.on_message(filters.private & filters.command("start"))
 def register_user(client, message):
     user_id = message.from_user.id
@@ -64,80 +63,40 @@ def help_callback(client, callback_query):
 def start_callback(client, callback_query):
     start(client, callback_query.message)
 
-# Broadcast command
-@app.on_message(filters.command("broadcast") & filters.user(OWNER_ID))  # Only the owner can use this command
-async def broadcast(client, message):
-    text = message.text.split(" ", 1)[1] if len(message.command) > 1 else "Broadcast message."
-    users = users_collection.find()
-    count = 0
-    for user in users:
-        try:
-            await client.send_message(user["user_id"], text)
-            count += 1
-        except Exception as e:
-            print(f"Error sending message to {user['user_id']}: {e}")
-    message.reply_text(f"✅ Broadcast sent to {count} users.")
-
-# Download audio from YouTube
-def download_audio(query):
-    try:
-        ydl_opts = {
-            'format': 'bestaudio/best',  # Best audio quality
-            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Output directory for audio files
-        }
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            print("Audio download ho raha hai...")
-            info = ydl.extract_info(f"ytsearch:{query}", download=True)['entries'][0]
-            file_path = f"downloads/{info['title']}.mp3"
-
-            # Save song details to MongoDB
-            song_data = {
-                "title": info['title'],
-                "url": info['webpage_url'],
-                "file_path": file_path,
-                "duration": info['duration'],  # Store duration of song
-                "thumbnail": info['thumbnail']  # Store thumbnail URL
-            }
-            songs_collection.insert_one(song_data)
-            print("Audio download complete!")
-            return song_data
-    except Exception as e:
-        print(f"Error downloading audio: {e}")
-        return None
-
-# Play command
+# Play command to search and play songs
 @app.on_message(filters.command("play"))
 def play(client, message):
     chat_id = message.chat.id
     query = " ".join(message.command[1:])
 
     if not query:
-        message.reply_text("कृपया गाने का नाम दें। उदाहरण: /play Tum Hi Ho")
+        message.reply_text("Please provide a song name. Example: /play Tum Hi Ho")
         return
 
-    message.reply_text(f"🔎 '{query}' खोजा जा रहा है...")
+    message.reply_text(f"🔎 Searching for '{query}'...")
+
+    # Download the audio using yt-dlp
     song_data = download_audio(query)
-
+    
     if not song_data:
-        message.reply_text("❌ गाना डाउनलोड नहीं हो सका। कृपया फिर से प्रयास करें।")
+        message.reply_text("❌ Could not download the song. Please try again.")
         return
 
-    # Create custom message with song details and thumbnail
+    # Create a custom message with song details
     title = song_data["title"]
     duration = song_data["duration"]
     requested_by = message.from_user.first_name
     thumbnail = song_data["thumbnail"]
 
     custom_message = f"""
-    ➲ **Sᴛᴀʀᴛᴇᴅ Sᴛʀᴇᴀᴍɪɴɢ**
+    ➲ **Started Streaming**
 
-    ‣ **Tɪᴛʟᴇ** : {title}
-    ‣ **Dᴜʀᴀᴛɪᴏɴ** : {duration} seconds
-    ‣ **Rᴇǫᴜᴇsᴛᴇᴅ ʙʏ** : {requested_by}
+    ‣ **Title** : {title}
+    ‣ **Duration** : {duration} seconds
+    ‣ **Requested by** : {requested_by}
     """
 
-    # Send the message with song thumbnail
+    # Send the message with the song's thumbnail
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{client.me.username}?startgroup=true")]
     ])
@@ -149,29 +108,50 @@ def play(client, message):
         reply_markup=keyboard
     )
 
-    message.reply_text("✅ गाना डाउनलोड हो गया, अब प्ले हो रहा है!")
+    message.reply_text("✅ Song downloaded, now playing!")
 
-    # Play the audio using AudioPiped
+    # Play the song in the voice chat
     song_path = song_data['file_path']
-    vc.join_group_call(chat_id, AudioPiped(song_path))  # Use AudioPiped to play the audio
+    vc.join_group_call(chat_id, AudioStream(song_path))  # Use AudioStream for voice chat
 
-# Stop command
+# Function to download the audio using yt-dlp
+def download_audio(query):
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',  # Best audio quality
+            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Output directory for audio files
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            print("Downloading audio...")
+            info = ydl.extract_info(f"ytsearch:{query}", download=True)['entries'][0]
+            file_path = f"downloads/{info['title']}.mp3"
+
+            # Save song details to MongoDB
+            song_data = {
+                "title": info['title'],
+                "url": info['webpage_url'],
+                "file_path": file_path,
+                "duration": info['duration'],  # Song duration
+                "thumbnail": info['thumbnail']  # Thumbnail URL
+            }
+            songs_collection.insert_one(song_data)
+            print("Download complete!")
+            return song_data
+    except Exception as e:
+        print(f"Error downloading audio: {e}")
+        return None
+
+# Stop command to leave the voice chat
 @app.on_message(filters.command("stop"))
 def stop(client, message):
     chat_id = message.chat.id
     vc.leave_group_call(chat_id)
-    message.reply_text("🛑 म्यूजिक बंद कर दिया गया है।")
+    message.reply_text("🛑 Music stopped and left the voice chat.")
 
-# Error handling - You should wrap the code in try-except in functions where errors may occur
-async def log_error(client, error):
-    try:
-        await client.send_message(LOGGER_ID, f"Error occurred: {error}")
-    except Exception as e:
-        print(f"Error logging to LOGGER_ID: {e}")
-
-# Start bot and userbot
+# Start the bot and userbot
 app.start()
 userbot.start()
 vc.start()
-print("🎵 Telegram Music Bot चालू हो गया है!")
+print("🎵 Music bot is now running!")
 asyncio.get_event_loop().run_forever()
