@@ -35,18 +35,7 @@
       "required": true
     }
   },
-  "buildpacks": [
-    {
-      "url": "heroku/python"
-    },
-    {
-      "url": "heroku/nodejs"
-    }
-  ],
-  "formation": {
-    "worker": {
+   "formation": {
+    "web": {
       "quantity": 1,
-      "size": "eco"
-    }
-  }
-}
+      "size": "standard-2x"
