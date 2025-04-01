@@ -5,4 +5,3 @@ py-tgcalls==0.6.0
 yt-dlp==2024.03.10  
 aiohttp==3.11.15
 ffmpeg
-git+https://github.com/pytgcalls/pytgcalls.git
