@@ -7,5 +7,8 @@ RUN apt-get update -y && apt-get upgrade -y \
 COPY . /app/
 WORKDIR /app/
 
+
+RUN pip3 install --no-cache-dir py-tgcalls==0.9.2
+
 RUN pip3 install -r requirements.txt --force-reinstall
 CMD python3 -m EsproAudio
