@@ -1,3 +1,1 @@
-worker: python3 EsproAudio.py
-
-
+worker: bash start
