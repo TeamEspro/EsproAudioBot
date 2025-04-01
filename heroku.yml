@@ -2,4 +2,4 @@ build:
   docker:
     web: Dockerfile
 run:
-  web: python EsproAudio.py
+  web: python3 EsproAudio.py
