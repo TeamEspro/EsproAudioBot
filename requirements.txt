@@ -1,5 +1,5 @@
 pyrogram
 tgcrypto
-pytgcalls
+py-tgcalls
 pymongo
 yt-dlp
