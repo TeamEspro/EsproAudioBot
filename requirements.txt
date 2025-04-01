@@ -2,3 +2,4 @@ pyrogram
 yt-dlp
 python-telegram-bot
 ffmpeg
+TgCrypto
