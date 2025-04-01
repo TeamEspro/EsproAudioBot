@@ -1,17 +1,16 @@
-# Use official Python image
-FROM python:3.10
+FROM ubuntu:latest
 
-# Set the working directory
+# Install required packages
+RUN apt update && apt install -y python3 python3-pip ffmpeg nodejs npm && apt clean
+
+# Set working directory
 WORKDIR /app
 
 # Copy project files
-COPY . .
+COPY . /app/
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -U -r requirements.txt
 
-# Expose the port Heroku uses
-EXPOSE 5000
-
-# Command to run your application
+# Start the bot
 CMD ["python3", "EsproAudio.py"]
