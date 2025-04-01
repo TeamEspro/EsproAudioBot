@@ -3,10 +3,10 @@ import yt_dlp
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-# Telegram Bot Authentication (Replace with your credentials)
-API_ID = 12380656  # 🔹 Replace with your API ID
-API_HASH = "d927c13beaaf5110f25c505b7c071273"  # 🔹 Replace with your API Hash
-BOT_TOKEN = "7795461893:AAEUuZbDO_FI3cJVWGYSdX8PKpelbA2pclM"  # 🔹 Replace with your Bot Token
+# Telegram Bot Authentication using environment variables
+API_ID = os.getenv("API_ID")  # Set your API ID in Heroku config
+API_HASH = os.getenv("API_HASH")  # Set your API Hash in Heroku config
+BOT_TOKEN = os.getenv("BOT_TOKEN")  # Set your Bot Token in Heroku config
 
 # Initialize bot
 app = Client(
@@ -44,21 +44,24 @@ async def download_audio(client, message: Message):
     try:
         await message.reply("🎵 Downloading audio... Please wait.")
         
+        # Download the audio and save to a temporary file
         with yt_dlp.YoutubeDL(audio_opts) as ydl:
-            ydl.download([url])
+            info_dict = ydl.extract_info(url, download=True)
+            title = info_dict.get("title", "Unknown title")
+            ext = info_dict.get("ext", "mp3")
         
-        # Get the latest downloaded file
-        file_path = os.path.join('audio_folder', os.listdir('audio_folder')[-1])
+        file_path = os.path.join('audio_folder', f"{title}.{ext}")
 
         # Send file to user's DM
-        await client.send_audio(user_id, file_path, caption="✅ Here is your audio!")
-
+        with open(file_path, 'rb') as audio_file:
+            await client.send_audio(user_id, audio_file, caption=f"✅ Here is your audio: {title}")
+        
         # Delete the file after sending
         os.remove(file_path)
     except Exception as e:
         await message.reply(f"❌ Error during audio download: {str(e)}")
 
-# 🔹 /video command
+# 🔹 /video comm
 @app.on_message(filters.command("video"))
 async def download_video(client, message: Message):
     if len(message.command) < 2:
@@ -71,15 +74,18 @@ async def download_video(client, message: Message):
     try:
         await message.reply("📹 Downloading video... Please wait.")
         
+        # Download the video and save to a temporary file
         with yt_dlp.YoutubeDL(video_opts) as ydl:
-            ydl.download([url])
+            info_dict = ydl.extract_info(url, download=True)
+            title = info_dict.get("title", "Unknown title")
+            ext = info_dict.get("ext", "mp4")
         
-        # Get the latest downloaded file
-        file_path = os.path.join('video_folder', os.listdir('video_folder')[-1])
+        file_path = os.path.join('video_folder', f"{title}.{ext}")
 
         # Send file to user's DM
-        await client.send_video(user_id, file_path, caption="✅ Here is your video!")
-
+        with open(file_path, 'rb') as video_file:
+            await client.send_video(user_id, video_file, caption=f"✅ Here is your video: {title}")
+        
         # Delete the file after sending
         os.remove(file_path)
     except Exception as e:
