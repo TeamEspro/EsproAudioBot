@@ -1,10 +1,11 @@
 {
-  "name": "EsproAudio",
+  "name": "telegram-music-bot",
   "version": "1.0.0",
   "engines": {
     "node": "16.x"
   },
   "dependencies": {
-    "ffmpeg-static": "*"
+    "ffmpeg-static": "*",
+    "python-shell": "*"
   }
 }
