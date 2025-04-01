@@ -92,3 +92,4 @@ async def download_video(client, message: Message):
         await message.reply(f"❌ Error during video download: {str(e)}")
 
 print("start")
+app.run()
