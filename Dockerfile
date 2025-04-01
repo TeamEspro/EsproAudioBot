@@ -1,14 +1,14 @@
-FROM ubuntu:jammy
-RUN apt-get update -y && apt-get upgrade -y \
-    && apt-get install -y git libxrender1 python3-pip \
-    && apt-get install -y ffmpeg && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-    
-COPY . /app/
-WORKDIR /app/
+# Step 1: Use official Python image
+FROM python:3.10
 
+# Step 2: Set the working directory inside the container
+WORKDIR /app
 
-RUN pip3 install --no-cache-dir py-tgcalls==0.9.2
+# Step 3: Copy all project files
+COPY . .
 
-RUN pip3 install -r requirements.txt --force-reinstall
+# Step 4: Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Step 6: Start the bot when container runs
 CMD python3 -m EsproAudio
