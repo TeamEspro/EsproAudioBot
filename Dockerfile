@@ -1,22 +1,11 @@
-# Use Ubuntu Jammy (22.04 LTS) as the base image
 FROM ubuntu:jammy
+RUN apt-get update -y && apt-get upgrade -y \
+    && apt-get install -y git libxrender1 python3-pip \
+    && apt-get install -y ffmpeg && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+    
+COPY . /app/
+WORKDIR /app/
 
-# Set non-interactive mode to prevent installation prompts
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Install system dependencies including Python and pip
-RUN apt update && apt install -y \
-    python3 python3-pip ffmpeg git curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy all project files into the container
-COPY . .
-
-# Install Python dependencies
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
-
-# Step 6: Start the bot when container runs
+RUN pip3 install -r requirements.txt --force-reinstall
 CMD python3 -m EsproAudio
