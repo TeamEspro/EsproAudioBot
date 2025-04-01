@@ -1,0 +1,47 @@
+{
+  "name": "Telegram Music Bot",
+  "description": "A Telegram Music Bot that plays music in voice chats.",
+  "repository": "https://github.com/your-username/your-repo-name",  // अपने GitHub repository URL से बदलें
+  "logo": "https://example.com/logo.png",  // यदि आपके पास कोई logo हो तो उसका URL डालें, या इसको हटा सकते हैं।
+  "keywords": ["telegram", "music", "bot", "voice chat"],
+  "env": {
+    "API_ID": {
+      "description": "Your Telegram API ID",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Your Telegram API Hash",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "Your Telegram Bot Token",
+      "required": true
+    },
+    "USERBOT_SESSION": {
+      "description": "Your Userbot Session String",
+      "required": true
+    },
+    "MONGO_URI": {
+      "description": "MongoDB connection URI",
+      "required": true
+    },
+    "OWNER_ID": {
+      "description": "Your Telegram User ID (Owner)",
+      "required": true
+    },
+    "LOGGER_ID": {
+      "description": "Group ID for logging errors",
+      "required": true
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "worker": {
+      "command": "python EsproAudio.py"
+    }
+  }
+}
