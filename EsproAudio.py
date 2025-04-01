@@ -4,9 +4,10 @@ import yt_dlp
 import pymongo
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pytgcalls import PyTgCalls, AudioStream  # Changed import to AudioStream
-from pytgcalls import GroupCall
+from pytgcalls import PyTgCalls, AudioPiped  # Updated import for AudioPiped
 from pytgcalls.types import GroupCallParticipant
+from pytgcalls import GroupCall
+from pytgcalls.types.input_stream import InputAudioStream
 
 # Heroku Config Vars (for environment variables)
 API_ID = os.getenv("API_ID")
@@ -150,9 +151,9 @@ def play(client, message):
 
     message.reply_text("✅ गाना डाउनलोड हो गया, अब प्ले हो रहा है!")
 
-    # Play the audio using AudioStream
+    # Play the audio using AudioPiped
     song_path = song_data['file_path']
-    vc.join_group_call(chat_id, AudioStream(song_path))  # Use AudioStream instead of AudioPiped
+    vc.join_group_call(chat_id, AudioPiped(song_path))  # Use AudioPiped to play the audio
 
 # Stop command
 @app.on_message(filters.command("stop"))
