@@ -1,6 +1,7 @@
-py-tgcalls==0.9.2
+
 Pyrogram==2.0.106
 TgCrypto==1.2.5
 yt-dlp
 pymongo
 ffmpeg
+git+https://github.com/pytgcalls/pytgcalls.git
