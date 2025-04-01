@@ -1,9 +1,10 @@
 {
-  "name": "Telegram Music Bot",
+  "name": "audio",
   "description": "A Telegram Music Bot that plays music in voice chats.",
-  "repository": "https://github.com/TeamEspro/EsproAudioBot",  
-  "logo": "https://example.com/logo.png",  
+  "repository": "https://github.com/TeamEspro/EsproAudioBot",
+  "logo": "https://example.com/logo.png",
   "keywords": ["telegram", "music", "bot", "voice chat"],
+  "stack": "container",
   "env": {
     "API_ID": {
       "description": "Your Telegram API ID",
@@ -35,19 +36,14 @@
     }
   },
   "buildpacks": [
-          {
-              "url": "heroku/python"
-          },
-          {
-              "url": "heroku/nodejs"
-          },
-          {
-              "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
-          }
+    {
+      "url": "heroku/python"
+    }
   ],
   "formation": {
     "worker": {
-      "command": "python EsproAudio.py"
+      "quantity": 1,
+      "size": "eco"
     }
   }
 }
