@@ -1,7 +1,4 @@
-pyrogram==2.0.106  
-tgcrypto==1.2.5  
-pymongo[srv]==4.5.0  
-py-tgcalls==0.9.7
-yt-dlp==2024.03.10  
-aiohttp==3.11.15
+pyrogram
+yt-dlp
+python-telegram-bot
 ffmpeg
