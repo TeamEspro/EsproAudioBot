@@ -3,10 +3,9 @@ import asyncio
 import yt_dlp
 import pymongo
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pytgcalls import PyTgCalls
 from pytgcalls.types.input_stream import InputAudioStream
-from pytgcalls.types.input_stream.input_stream import InputStream
 
 # Heroku Config Vars (for environment variables)
 API_ID = os.getenv("API_ID")
@@ -73,33 +72,37 @@ async def broadcast(client, message):
         try:
             await client.send_message(user["user_id"], text)
             count += 1
-        except:
-            pass
+        except Exception as e:
+            print(f"Error sending message to {user['user_id']}: {e}")
     message.reply_text(f"✅ Broadcast sent to {count} users.")
 
 # Download audio from YouTube
 def download_audio(query):
-    ydl_opts = {
-        'format': 'bestaudio/best',  # Best audio quality
-        'outtmpl': 'downloads/%(title)s.%(ext)s',  # Output directory for audio files
-    }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        print("Audio download ho raha hai...")
-        info = ydl.extract_info(f"ytsearch:{query}", download=True)['entries'][0]
-        file_path = f"downloads/{info['title']}.mp3"
-
-        # Save song details to MongoDB
-        song_data = {
-            "title": info['title'],
-            "url": info['webpage_url'],
-            "file_path": file_path,
-            "duration": info['duration'],  # Store duration of song
-            "thumbnail": info['thumbnail']  # Store thumbnail URL
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',  # Best audio quality
+            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Output directory for audio files
         }
-        songs_collection.insert_one(song_data)
-        print("Audio download complete!")
-        return song_data
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            print("Audio download ho raha hai...")
+            info = ydl.extract_info(f"ytsearch:{query}", download=True)['entries'][0]
+            file_path = f"downloads/{info['title']}.mp3"
+
+            # Save song details to MongoDB
+            song_data = {
+                "title": info['title'],
+                "url": info['webpage_url'],
+                "file_path": file_path,
+                "duration": info['duration'],  # Store duration of song
+                "thumbnail": info['thumbnail']  # Store thumbnail URL
+            }
+            songs_collection.insert_one(song_data)
+            print("Audio download complete!")
+            return song_data
+    except Exception as e:
+        print(f"Error downloading audio: {e}")
+        return None
 
 # Play command
 @app.on_message(filters.command("play"))
@@ -113,6 +116,10 @@ def play(client, message):
 
     message.reply_text(f"🔎 '{query}' खोजा जा रहा है...")
     song_data = download_audio(query)
+
+    if not song_data:
+        message.reply_text("❌ गाना डाउनलोड नहीं हो सका। कृपया फिर से प्रयास करें।")
+        return
 
     # Create custom message with song details and thumbnail
     title = song_data["title"]
@@ -144,7 +151,7 @@ def play(client, message):
 
     # Play the audio
     song_path = song_data['file_path']
-    vc.join_group_call(chat_id, InputStream(InputAudioStream(song_path)))
+    vc.join_group_call(chat_id, InputAudioStream(song_path))
 
 # Stop command
 @app.on_message(filters.command("stop"))
@@ -156,7 +163,10 @@ def stop(client, message):
 # Log errors to Logger group
 @app.on_error()
 async def log_error(client, error):
-    await client.send_message(LOGGER_ID, f"Error occurred: {error}")
+    try:
+        await client.send_message(LOGGER_ID, f"Error occurred: {error}")
+    except Exception as e:
+        print(f"Error logging to LOGGER_ID: {e}")
 
 # Start bot and userbot
 app.start()
