@@ -1,8 +1,8 @@
 {
   "name": "Telegram Music Bot",
   "description": "A Telegram Music Bot that plays music in voice chats.",
-  "repository": "https://github.com/TeamEspro/EsproAudioBot",  # अपने GitHub repository URL से बदलें
-  "logo": "https://example.com/logo.png",  # यदि आपके पास कोई logo हो तो उसका URL डालें, या इसको हटा सकते हैं।
+  "repository": "https://github.com/TeamEspro/EsproAudioBot",  
+  "logo": "https://example.com/logo.png",  
   "keywords": ["telegram", "music", "bot", "voice chat"],
   "env": {
     "API_ID": {
