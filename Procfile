@@ -1,1 +1,1 @@
-web: python3 EsproAudio.py
+worker: python3 EsproAudio.py
