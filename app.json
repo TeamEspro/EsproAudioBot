@@ -1,5 +1,5 @@
 {
-  "name": "audio",
+  "name": "Telegram Music Bot",
   "description": "A Telegram Music Bot that plays music in voice chats.",
   "repository": "https://github.com/TeamEspro/EsproAudioBot",
   "logo": "https://example.com/logo.png",
@@ -38,6 +38,9 @@
   "buildpacks": [
     {
       "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
     }
   ],
   "formation": {
