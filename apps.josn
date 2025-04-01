@@ -1,0 +1,27 @@
+{
+  "name": "yt-downloader-bot",
+  "description": "A simple Telegram bot to download YouTube audio and video.",
+  "repository": "https://github.com/TeamEspro/EsproAudioBot",
+  "logo": "https://link-to-your-logo.png",
+  "keywords": ["telegram", "bot", "youtube", "downloader"],
+  "env": {
+    "API_ID": {
+      "description": "Your Telegram API ID.",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Your Telegram API Hash.",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "Your Telegram Bot Token.",
+      "required": true
+    }
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  }
+}
