@@ -13,6 +13,10 @@
       "description": "Your Telegram API Hash.",
       "required": true
     },
+    "YOUTUBE_API_KEY": {
+      "description": "Your Telegram API Hash.",
+      "required": true
+    },
     "BOT_TOKEN": {
       "description": "Your Telegram Bot Token.",
       "required": true
