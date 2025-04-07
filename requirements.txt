@@ -1,5 +1,4 @@
 pyrogram
+tgcrypto
 yt-dlp
-python-telegram-bot
-ffmpeg
-TgCrypto
+google-api-python-client
