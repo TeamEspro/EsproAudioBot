@@ -1,80 +1,73 @@
-import os
-import logging
-from googleapiclient.discovery import build
 from pyrogram import Client, filters
+from pyrogram.types import Message
+from googleapiclient.discovery import build
 import yt_dlp
+import os
 
-# Logging
-logging.basicConfig(level=logging.INFO)
+API_ID = int(os.environ.get("API_ID"))
+API_HASH = os.environ.get("API_HASH")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
 
-# Config from Heroku ENV
-BOT_TOKEN = os.environ.get("7849899179:AAHEcwuDdrdaORjl1WW02wOWkKsGgrBj2mo")
-API_ID = int(os.environ.get("23664108"))
-API_HASH = os.environ.get("a0f978987457c5a45450dbc6b90e69e7")
-YOUTUBE_API_KEY = os.environ.get("AIzaSyB0Dd46e_EwagTplRuEIo1uAiVtVDfND3c")
+bot = Client("yt_download_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Pyrogram client
-app = Client("yt_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Ensure download folder exists
+os.makedirs("downloads", exist_ok=True)
 
-# YouTube API client
-youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
-
+# YouTube search function
 def search_youtube(query):
-    request = youtube.search().list(
-        q=query,
-        part="snippet",
-        type="video",
-        maxResults=1
-    )
-    response = request.execute()
-    if not response["items"]:
-        return None, None
-    video = response["items"][0]
-    video_id = video["id"]["videoId"]
-    title = video["snippet"]["title"]
-    return f"https://www.youtube.com/watch?v={video_id}", title
+    youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+    req = youtube.search().list(q=query, part="snippet", type="video", maxResults=1)
+    res = req.execute()
+    if res["items"]:
+        video_id = res["items"][0]["id"]["videoId"]
+        title = res["items"][0]["snippet"]["title"]
+        return f"https://www.youtube.com/watch?v={video_id}", title
+    return None, None
 
-def download_audio(url, title):
-    output_dir = "downloads"
-    os.makedirs(output_dir, exist_ok=True)
-    filename = f"{output_dir}/{title}.mp3"
-
+# Download function
+def download_video(url):
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': filename,
+        'format': 'bestaudio',
+        'outtmpl': 'downloads/%(title)s.%(ext)s',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'quiet': True,
+        'quiet': True
     }
-
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-    return filename
+        info = ydl.extract_info(url, download=True)
+        return ydl.prepare_filename(info).replace(".webm", ".mp3").replace(".m4a", ".mp3")
 
-@app.on_message(filters.command("start"))
+# /start command
+@bot.on_message(filters.command("start") & filters.private)
 async def start(client, message):
-    await message.reply("Send me a YouTube search query, and I'll download the audio for you!")
+    await message.reply("Hi! Send `/download song name` to download audio from YouTube.", quote=True)
 
-@app.on_message(filters.text & ~filters.command(["start"]))
-async def handle_query(client, message):
-    query = message.text
-    await message.reply(f"Searching YouTube for: `{query}`", quote=True)
+# /download command
+@bot.on_message(filters.command("download") & filters.private)
+async def download_handler(client: Client, message: Message):
+    query = message.text.split(None, 1)
+    if len(query) < 2:
+        return await message.reply("Usage: `/download song name`", quote=True)
 
-    url, title = search_youtube(query)
+    await message.reply("Searching YouTube...", quote=True)
+    url, title = search_youtube(query[1])
     if not url:
-        await message.reply("No video found.")
-        return
+        return await message.reply("No video found.", quote=True)
 
-    await message.reply(f"Downloading: `{title}`")
+    await message.reply(f"Downloading: **{title}**", quote=True)
+    filepath = download_video(url)
 
-    try:
-        file_path = download_audio(url, title)
-        await message.reply_audio(audio=file_path, title=title)
-        os.remove(file_path)
-    except Exception as e:
-        await message.reply(f"Failed to download: {e}")
-print("start")
-app.run()
+    await message.reply_audio(
+        audio=filepath,
+        title=title,
+        caption="Downloaded from YouTube",
+        quote=True
+    )
+
+    os.remove(filepath)
+print("Bot Start 😤 😤")
+bot.run()
